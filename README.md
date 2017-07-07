@@ -6,6 +6,8 @@ This is an attempt at getting a phone element to have a ui mask in polymer. Simi
 
 All the magic is pretty much in the MaskBehavior which the ui-phone element uses.
 
+The masking is done by the excellent string-mask library at: https://unpkg.com/string-mask@0.3.0/src/string-mask.js and https://github.com/the-darc/string-mask. Nice job, https://github.com/the-darc. 
+
 As a bonus, this element also plays nicely with angular using the angular_bind_polymer.js directive at https://github.com/eee-c/angular-bind-polymer.
 
 You can mask 2 ways: preformat or normal masking as you type. So the real masking occurs if you preformat, in which case you will get the format with underscores as placeholders for what you type.
