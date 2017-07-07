@@ -8,7 +8,9 @@ All the magic is pretty much in the MaskBehavior which the ui-phone element uses
 
 As a bonus, this element also plays nicely with angular using the angular_bind_polymer.js directive at https://github.com/eee-c/angular-bind-polymer.
 
-You can mask 2 ways: premask or normal masking as you type.
+You can mask 2 ways: preformat or normal masking as you type. So the real masking occurs if you preformat, in which case you will get the format with underscores as placeholders for what you type.
+
+This is still in early development, and bugs or PRs are welcome. (And also if anyone can point me to a better implementation, because writing a ui-mask sucks.)
 
 ## Install the Polymer-CLI
 
