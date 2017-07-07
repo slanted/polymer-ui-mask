@@ -1,0 +1,151 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="mask-behavior.html">
+<!--
+`ns-phone`
+nuskin phone element
+
+@demo demo/index.html
+-->
+
+<dom-module id="ui-phone">
+  <template>
+    <style>
+      :host {
+        display: block;
+        margin: 10px;
+        padding: 5px;
+      }
+
+      label {
+        display:block;
+        font-size: 0.875rem;
+        margin-bottom: .2rem;
+      }
+
+      .form-control {
+        padding: 6px 8px;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #444444;
+        border-radius: 0;
+        outline-width: 0;
+        border: 1px solid black;
+        width: 100%;
+      }
+
+      .error {
+        background-color: #FFFFFF;
+        border: solid 1px #D0021B;
+        border-left: solid 6px #D0021B;
+      }
+
+      .error-block {
+        color:red;
+        font-size: 0.875rem;
+        margin-top:2px;
+        display: block;
+        visibility: hidden;
+      }
+    </style>
+    <div class="col-md-12 no-gutter">
+      <label class="form-label">{{label}}</label>
+      <input class="m-b-0 form-control" type="text" value="{{formattedValue::input}}">
+      <span id="error" class="m-t-1 error-block">{{errorMessage}}</span>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'ui-phone',
+      behaviors: [
+        MaskBehavior
+      ],
+      properties: {
+        translations: {
+          type: Object,
+          value: {
+            en: {label: 'Phone Number',errorMessage: 'Your phone number is invalid'},
+            de: {label: 'Telefon Nummer',errorMessage: 'Ihre Telefon nummer ist ungültig'}
+          }
+        },
+        rules: {
+          type: Object,
+          value: {
+            US: {mask: '(000) 000-0000',length: 10},
+            DE: {mask: '000-0000',length: 7},
+          }
+        },
+        label: {
+          type: String,
+          value: ''
+        },
+        formattedValue: {
+          type: String,
+          reflectToAttribute: true,
+          notify: true,
+          observer: 'validate'
+        },
+        value: {
+          type: String,
+          reflectToAttribute: true,
+          notify: true,
+          observer: 'validate'
+        },
+        country: {
+          type: String
+        },
+        language: {
+          type: String
+        },
+        required: {
+          type: Boolean,
+          value: false
+        },
+        errorMessage: {
+          type: String
+        },
+        error: {
+          type: Boolean,
+          value: false
+        },
+        hasReceivedFocus: {
+          type: Boolean,
+          value: false
+        }
+      },
+      listeners: {
+        'focusin': 'receivedFocus',
+      },
+      ready: function() {
+        if (!this.language) {
+          this.language = 'en';
+        }
+        this.label = this.translations[this.language]["label"];
+        this.errorMessage = this.translations[this.language]["errorMessage"];
+        this.mask = this.rules[this.country]["mask"];
+
+      },
+      receivedFocus: function() {
+        this.hasReceivedFocus = true;
+      },
+      validate: function() {
+        if (this.hasReceivedFocus) {
+          var el = this.$$('input');
+          var errorEl = this.$.error;
+          try {
+            if (this.value.length != this.rules[this.country].length && this.value.length != 0) {
+              this.error = true;
+              el.classList.add('error');
+              errorEl.style.visibility = "visible";
+            } else {
+              this.error = false;
+              el.classList.remove('error');
+              errorEl.style.visibility = "hidden";
+            }
+          } catch (err) {
+
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

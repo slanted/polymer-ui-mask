@@ -1,0 +1,195 @@
+<script src="https://unpkg.com/string-mask@0.3.0/src/string-mask.js"></script>
+<script>
+    MaskBehavior = {
+        properties: {
+            mask: {
+                type: String,
+                value: "(000) 000-0000",
+                notify: true
+            },
+            formattedValue: {
+                type:String,
+                observer: 'changeValue'
+            },
+            value: {
+              type: String,
+              reflectToAttribute: true,
+              notify: true,
+              observer: 'addMask'
+            },
+            doMask: {
+                type: Boolean,
+                value: true
+            },
+            preformat: {
+                type: Boolean,
+                value: false
+            },
+            inputIndex: {
+                type: Number
+            },
+            changeVal: {
+                type: Boolean,
+                value: true
+            }
+        },
+        listeners: {
+            'focusin': 'receivedFocusMask',
+            'tap': 'receivedFocusMask',
+            'keyup': 'enterInfo'
+        },
+        receivedFocusMask: function() {
+            var el = this.$$('input');
+            var cursorPosition = this.getCursorPosition();
+            this.setCaretPosition(el,this.formattedValue.indexOf("_"));
+        },
+        enterInfo: function(val) {
+            if (val.key == 'Backspace') {
+                var el = this.$$('input');
+                var startPos = el.selectionStart;
+                var endPos = el.selectionEnd;
+
+                console.log("start:"+startPos+" end:"+endPos);
+                var lastLetter = this.formattedValue.substring(endPos-1,endPos);
+                console.log("lastLetter:"+lastLetter);
+                var goBack = 0;
+                while (!lastLetter.match(/\d/)) {
+                    if (this.value.length ==0) {
+                        return;
+                    }
+                    // fail-safe
+                    if(goBack > 20) {
+                        return;
+                    }
+                    goBack++;
+                    lastLetter = this.formattedValue.substring(endPos-(goBack+1),endPos-goBack);
+                }
+                this.setCaretPosition(el, endPos-goBack);
+            }
+        },
+        created: function() {
+
+        },
+        setCaretPosition: function(input, pos) {
+            //input.focus();
+            if (!input)
+                return 0;
+            if (input.offsetWidth === 0 || input.offsetHeight === 0) {
+                return; // Input's hidden
+            }
+            if (input.setSelectionRange) {
+                //if (isFocused(iElement[0])) {
+                    input.focus();
+                    input.setSelectionRange(pos, pos);
+                //}
+            }
+            else if (input.createTextRange) {
+                // Curse you IE
+                var range = input.createTextRange();
+                range.collapse(true);
+                range.moveEnd('character', pos);
+                range.moveStart('character', pos);
+                range.select();
+            }
+            //console.log("Moved cursor to:"+pos);
+        },
+        ready: function() {
+        },
+        _strip: function(val) {
+            var rv = "";
+            if (val) {
+                rv = val.replace(/[()_-]/g,'');
+                rv = rv.replace(/\s/g,'');
+            }
+            return rv;
+        },
+        convertMask: function() {
+          return this.mask.replace(/[0]/g,'_');
+        },
+        getCursorPosition: function() {
+            var index = this.value.length;
+            return this.formattedValue.split("_", index).join("_").length;
+        },
+        changeValue: function(newval, oldval) {
+            console.log("CHANGEVALUE. old:",oldval+" new:"+newval);
+            // all we want to do is edit the value here
+            var newActual = this._strip(newval);
+            var oldActual = this._strip(oldval);
+            console.log("Set value to:"+newActual);
+            this.value = newActual;
+            this.addMask(this.value);
+        },
+        removeChars: function(val) {
+            var lastLetter = val.substring(val.length-1);
+
+            var remove = 0;
+            while (lastLetter =='-' || lastLetter == ' ' || lastLetter == ')') {
+                remove++;
+                lastLetter = val.substring(val.length-remove+1);
+            }
+
+            return remove;
+        },
+        addMask: function(newval,oldval) {
+            console.log("MASKING old:"+oldval+" new:"+newval+" actual value:"+this.value);
+
+            //if (newActual != oldActual) {
+                var formatter = new StringMask(this.mask);
+                var masked = formatter.apply(newval);
+                //console.log("Masked value:"+masked);
+                //if (newval != masked) {
+                    //console.log("replacing value with masked:"+masked);
+                    if (this.preformat) {
+                        // now replace everything still missing in the mask with underscores
+                        masked = this.replaceRemaining();
+                        //console.log("preformatted mask:",masked);
+                    }
+                    console.log("Setting masked value to:"+masked);
+                    this.formattedValue = masked;
+                    if (this.preformat) {
+                        var el = this.$$('input');
+                        var cursorPosition = this.getCursorPosition();
+                        this.setCaretPosition(el,this.formattedValue.indexOf("_"));
+                    }
+                //}
+            //}
+        },
+        replaceRemaining: function() {
+            var replaced = "";
+            var valueIndex = 0;
+            for (var i=0; i < this.mask.length; i++) {
+                var letter = this.mask[i];
+                if (letter == '0') {
+                    if (this.value[valueIndex]) {
+                        replaced += this.value[valueIndex];
+                        valueIndex++;
+                    } else {
+                        replaced += "_";
+                    }
+                } else {
+                    replaced += this.mask[i];
+                }
+            }
+            return replaced;
+        }
+    };
+</script>
+
+
+
+<!--
+
+
+DELETE SCENARIO WHEN WE SHOULD HAVE REMOVED THE 9 AT THE END:
+CHANGEVALUE. old: (322) 349-____ new:(322) 349____
+
+or
+CHANGEVALUE. old: (343) ___-____ new:(343)___-____
+
+
+
+
+
+
+
+-->
